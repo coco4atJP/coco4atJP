@@ -1,6 +1,6 @@
 ![Profile artwork](assets/profile.png)
 
-# ここあ / coco4atJP
+# ここあ@jp / coco4atJP
 
 MUDSがくぶせーﾃﾞｽ  
 AIっておもしろいね
