@@ -1,0 +1,63 @@
+name: Update contribution snake
+
+on:
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/snake.yml']
+
+permissions: {}
+
+concurrency:
+  group: contribution-snake
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Generate light and dark animations
+        uses: Platane/snk/svg-only@d8f6715049803e982ee5ff501b6b9b7d5deeb09b # v3
+        with:
+          github_user_name: coco4atJP
+          outputs: |
+            dist/snake.svg?color_snake=#397fa6&color_dots=#edf2f7,#c8e1ee,#8dbdd6,#5796ba,#28658d
+            dist/snake-dark.svg?palette=github-dark&color_snake=#a8dcf0&color_dots=#192733,#24475c,#326780,#4997b4,#81c6df
+      - name: Store animations
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: contribution-snake
+          path: dist/*.svg
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: contribution-snake
+          path: assets/snake
+      - name: Commit updated images only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/snake/snake.svg assets/snake/snake-dark.svg
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Update contribution snake"
+          git pull --rebase origin main
+          git push origin HEAD:main
